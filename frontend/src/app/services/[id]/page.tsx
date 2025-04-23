@@ -1,10 +1,9 @@
-// app/services/[id]/page.tsx
 "use client";
 import { ApolloError } from "@apollo/client";
 
 import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "@apollo/client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   StarIcon,
   MapPinIcon,
@@ -14,7 +13,7 @@ import {
 } from "@heroicons/react/24/solid";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import ErrorMessage from "@/components/common/ErrorMessage";
-import { Service } from "@/types";
+import { Review, Service } from "@/types";
 import ServiceBadge from "@/components/service-details/ServiceBadge";
 import ImageGallery from "@/components/service-details/ImageGallery";
 import { toast } from "react-toastify";
@@ -23,15 +22,32 @@ import {
   GET_MY_BOOKING_FOR_SERVICE,
 } from "@/lib/repositories/BookingRepository";
 import { GET_SERVICE } from "@/lib/repositories/ServiceRepository";
+import { GET_REVIEWS } from "@/lib/repositories/ReviewRepository";
+import ReviewForm from "@/components/service-details/ReviewForm";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ServiceDetailsPage() {
   const params = useParams();
+  const [hasReviewed, setHasReviewed] = useState(false);
+  const { user } = useAuth(); 
+
   const id = params?.id as string;
   const { data: myBookingData } = useQuery(GET_MY_BOOKING_FOR_SERVICE, {
     variables: { serviceId: id },
     skip: !id,
   });
   const existingBooking = myBookingData?.getMyBookingForService;
+  const serviceId = id;
+
+  const { data: revData } = useQuery<{ reviews: Review[] }>(GET_REVIEWS, {
+    variables: { serviceId },
+  });
+
+  useEffect(() => {
+    if (user && revData?.reviews) {
+      setHasReviewed(revData.reviews.some((r) => r.user.id === user.id));
+    }
+  }, [user, revData]);
 
   const { data, loading, error } = useQuery<{ service: Service }>(GET_SERVICE, {
     variables: { id },
@@ -155,7 +171,15 @@ export default function ServiceDetailsPage() {
               </button>
             )}
           </div>
-
+          {service.status === "COMPLETED" &&
+            existingBooking?.status === "COMPLETED" &&
+            !hasReviewed && (
+              <ReviewForm
+                serviceId={service.id}
+                bookingId={existingBooking.id}
+                onSuccess={() => setHasReviewed(true)}
+              />
+            )}
           {/* معلومات المزود */}
           <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
             <h3 className="text-xl font-semibold mb-5 flex items-center gap-3 text-gray-800">
