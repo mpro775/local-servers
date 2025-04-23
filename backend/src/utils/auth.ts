@@ -2,7 +2,6 @@ import jwt from "jsonwebtoken";
 import { IUser } from "../models/User";
 
 export const generateToken = (user: IUser): string => {
-  // تأكد من أن user يحتوي على حقل email
   if (!user.email) {
     throw new Error("User email is required for token generation");
   }

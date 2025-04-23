@@ -19,8 +19,19 @@ export const bookingSchema = gql`
     isCancelable: Boolean!
     canComplete: Boolean!
     isPaid: Boolean!
+    review: Review
+
     createdAt: Date
     updatedAt: Date
+  }
+
+  type Review {
+    id: ID!
+    service: Service!
+    user: User!
+    rating: Int!
+    comment: String
+    createdAt: Date!
   }
 
   type PaymentIntent {
@@ -32,6 +43,11 @@ export const bookingSchema = gql`
   input UpdateBookingStatusInput {
     status: RequestStatus!
   }
+  input AddReviewInput {
+    bookingId: ID!
+    rating: Int!
+    comment: String
+  }
 
   type ProviderDashboard {
     totalServices: Int!
@@ -40,12 +56,12 @@ export const bookingSchema = gql`
     totalEarnings: Float!
   }
 
- 
   type Query {
     getMyBookingForService(serviceId: ID!): Booking
     myBookings(status: RequestStatus): [Booking!]!
     providerBookings(status: RequestStatus): [Booking!]!
     allBookings(status: RequestStatus): [Booking!]!
+    reviews(serviceId: ID!): [Review!]!
   }
 
   type Mutation {
@@ -59,5 +75,6 @@ export const bookingSchema = gql`
     processDummyPayment(id: ID!): Booking!
     startPayment(bookingId: ID!): PaymentIntent!
     confirmPayment(paymentId: ID!): Booking!
+    addReview(input: AddReviewInput!): Review!
   }
 `;
