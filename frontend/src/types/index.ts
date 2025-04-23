@@ -136,7 +136,18 @@ export interface StatCardProps {
 export interface BookingRow {
   id: string;
   service: { title: string };
-  user:    { name: string };
+  user: { name: string };
   bookingDate: string;
   status: "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED" | "CANCELLED";
+}
+
+export interface Review {
+  id: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+  };
 }
